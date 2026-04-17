@@ -1,14 +1,15 @@
-FROM pkpofficial/ojs:3_3_0-14 # Ou a versão que desejar
+FROM pkpofficial/ojs:stable-3_3_0
 
 USER root
 
-# Corrigir o erro "More than one MPM loaded" desativando o event e ativando o prefork
-RUN a2dismod mpm_event && a2enmod mpm_prefork
+# Resolve o erro de conflito de MPM do Apache
+RUN a2dismod mpm_event || true
+RUN a2enmod mpm_prefork || true
 
-# Ajustar permissões para que o script de inicialização possa editar os arquivos mesmo sem ser root
+# Garante permissões de escrita para as pastas de configuração e arquivos
 RUN chmod -R 777 /etc/apache2/conf-enabled/ /etc/apache2/apache2.conf /var/www/html/
 
-# Retornar para o usuário padrão do OJS (se houver) ou manter root para Railway
-USER root
+# Cria e dá permissão à pasta de uploads (caso não exista)
+RUN mkdir -p /var/www/files && chmod -R 777 /var/www/files
 
 EXPOSE 80
